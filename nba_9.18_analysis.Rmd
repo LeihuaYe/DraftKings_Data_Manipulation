@@ -1,0 +1,110 @@
+---
+title: "NBA_9_19"
+author: "Leihua Ye"
+date: "9/19/2020"
+output: html_document
+---
+
+# Two parts: prediction and after analysis
+# game 1 analysis 
+```{r setup, include=FALSE}
+Basic_Infor_Game_1 <- read.csv('Basic_Infor_Game_1.csv')
+Actual_point_Game_1 <- read.csv('Actual_point_Game_1.csv')
+game_one_9.18 <- merge(Basic_Infor_Game_1,Actual_point_Game_1,by.x= 'Name', by.y ="Player")
+head(game_one_9.18)
+```
+
+```{r}
+# data manipulation 
+library(dplyr)
+
+## Top 10 players with the highest actual_predicted_ratio. 
+game_one_9.18 %>% 
+  select(Name, APPG, Actual) %>% 
+  mutate(actual_predicted_ratio = Actual/APPG) %>%# new variable: actual_predicted_ratio
+  arrange(desc(actual_predicted_ratio)) %>% 
+  head(10)
+```
+
+
+
+```{r}
+## Top 10 players who scored the most
+top_10_scored_players <- game_one_9.18 %>% 
+  select(Name,Salary, APPG, Actual) %>% 
+  arrange(desc(Actual)) %>% 
+  head(10)
+top_10_scored_players
+```
+```{r}
+## Top 10 most drafted players
+game_one_9.18 %>% 
+  select(Name,Salary, APPG, Drafted_perc) %>% 
+  arrange(desc(Drafted_perc)) %>% 
+  head(10)
+```
+
+
+```{r}
+## potential combinations for Game 2 based on Game 1
+# selection based on top scores 
+
+#top_10_scored_players$Salary[1]=top_10_scored_players$Salary[1]*1.5
+
+total_combn = combn(top_10_scored_players$Salary, 6)
+must_sum<-colSums(total_combn)
+total_combn_1 <- total_combn[,which(must_sum<=50000)]# in total, there are 126 combinations
+write.table(total_combn_1,'/Users/andy/downloads/result1.txt',sep="\t")
+```
+
+
+```{r}
+Game_2<-read.csv('game_2_actual_point.csv')
+(game_two_9.20 <- merge(Salary,Game_2,by.x= 'Name', by.y ="Player"))
+#game_two_9.20$Salary[2]=game_two_9.20$Salary[2]*1.5; change AD's score to 1.5
+#game_two_9.20$Actual[2]=game_two_9.20$Actual[2]*1.5;
+
+game_2_top_10_scored_players <- game_two_9.20 %>% 
+  select(Name,Salary, APPG, Actual) %>% 
+  arrange(desc(Actual)) %>% 
+  head(10)
+
+
+total_comnb2 = combn(game_2_top_10_scored_players$Salary,6)
+must_sum_2 = colSums(total_comnb2)
+(total_comnb2<-total_comnb2[,which(must_sum_2<=50000)])
+```
+
+```{r}
+write.table(total_comnb2,'/Users/andy/downloads/result3.txt',sep="\t")
+```
+
+
+```{r}
+## Top players with high salary cap (>=8k) and still beat expectation 
+game_one_9.18 %>% 
+  select(Name,Salary, APPG, Actual, Drafted_perc) %>% 
+  mutate(actual_predicted_ratio = Actual/APPG) %>%# new variable: actual_predicted_ratio
+  filter(actual_predicted_ratio>=1 & Salary>=8000) %>% 
+  arrange(desc(actual_predicted_ratio))
+```
+
+```{r}
+## Good value players (3k-8k) and still beat expectation
+game_one_9.18 %>% 
+  select(Name,Salary, APPG, Actual, Drafted_perc) %>% 
+  mutate(actual_predicted_ratio = Actual/APPG) %>%# new variable: actual_predicted_ratio
+  filter(actual_predicted_ratio>=1 & Salary>=3000 & Salary<8000) %>% 
+  arrange(desc(actual_predicted_ratio))
+```
+
+# top 15 players in game 1
+
+```{r}
+## Top 10 players who scored the most in game 1 
+top_15_game_1 <- game_one_9.18 %>% 
+  select(Name,Salary, APPG, Actual) %>% 
+  arrange(desc(Actual)) %>% 
+  head(15)
+top_15_game_1$Name
+```
